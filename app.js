@@ -60,14 +60,16 @@ var budgetController = (function() {
 })();
 
 
-//UI module for user interface controller
+//MODULE FOR UI CONTROLLER
 var UIController = (function() {
   //instead of using 'document.querySelector etc we can store it in a private variable so if we change something in the UI we don't have to go and do each one manually in the javascript
   var DOMstrings = {
     inputType: '.add__type',
     inputDescription: '.add__description',
     inputValue: '.add__value',
-    inputBtn: '.add__btn'
+    inputBtn: '.add__btn',
+    incomeContainer: '.income__list',
+    expensesContainer: '.expense__list'
   }
 
   return {
@@ -75,11 +77,52 @@ var UIController = (function() {
       return {
         type: document.querySelector(DOMstrings.inputType).value,// will be either 'inc' income or 'exp' expense
         description: document.querySelector(DOMstrings.inputDescription).value,
-        value: document.querySelector(DOMstrings.inputValue).value
+        value: parseFloat(document.querySelector(DOMstrings.inputValue).value)//parseFloat converts a string to a floating number - or a number with decimals.
       };
     },
+
+    addListItem: function(obj, type) {
+      var html, newHtml, element;
+      //create an HTML string with placeholder text-align
+      if (type === 'inc') {
+                element = DOMstrings.incomeContainer;
+
+                html = '<div class="item clearfix" id="income+%id%"> <div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+            } else if (type === 'exp') {
+                element = DOMstrings.expensesContainer;
+
+                html = '<div class="item clearfix" id="expense+%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+            }
+
+      //replace the placeholder text with data by creating a new method
+      newHtml = html.replace('%id%', obj.id);
+      newHtml = newHtml.replace('%description%', obj.description);
+      newHtml = newHtml.replace('%value%', obj.value);
+
+
+      //insert the HTML into the DOM
+      document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
+    },
+
+    clearFields: function(){
+      var fields, fieldsArr;
+
+      fields = document.querySelectorAll(DOMstrings.inputDescription + ', ' + DOMstrings.inputValue);
+      //querySelectorAll returns a list so we must convert the list to an array.  We must use slice, which returns a copy of the array it is called on
+
+      fieldsArr = Array.prototype.slice.call(fields);//this tricks the slice method into thinking we're giving it an array, so we'll get an array in return
+
+      fieldsArr.forEach(function(current, index, array){
+        current.value = "";
+      });
+
+      fieldsArr[0].focus();//returns focus or the mouse pointer to a specific input field.  Index position zero is 'Add description' in this case so after the fields are cleared the mouse returns to that field.
+    },
+
     getDOMstrings: function() {
-      return DOMstrings;
+      return {
+        DOMstrings
+      }
     }
   };
 
@@ -99,6 +142,7 @@ var controller = (function(budgetCtrl,UICtrl) {
     //set up event listener by selecting an element and then attaching an event
       document.querySelector(DOM.inputBtn).addEventListener('click', ctrlAddItem);
 
+
       //in order to allow people to use the 'return' button you need a keypress event
       document.addEventListener('keypress', function(event){
         // console.log(event); //to see what happens when we 'keypress' any key. keycode for return button is '13'
@@ -106,25 +150,43 @@ var controller = (function(budgetCtrl,UICtrl) {
           // console.log('ENTER was pressed.')
           ctrlAddItem();
         }
-
       });
+
+  };
+
+  var updateBudget = function(){
+
+    // 1. calculate the budget
+
+    // 2. a method that returns the budget
+
+    // 3. display the budget on the UI
 
   };
 
   var ctrlAddItem = function() {
     var input, newItem;
     // 1. get the field input data
+
     input = UICtrl.getInput();
     // console.log(input); to test that the input is showing up.
 
-    // 2. add the item to the budget controller
-    newItem = budgetCtrl.addItem(input.type, input.description, input.value);
 
-    // 3. add the new item to the UI
+    //all of the below can only happen if there is data present in the input fields.
+    if(input.description !== "" && !isNaN(input.value) && input.value > 0){//the input description should not be empty and the value should not be NaN
 
-    // 4. calculate the budget
+      // 2. add the item to the budget controller
+      newItem = budgetCtrl.addItem(input.type, input.description, input.value);
 
-    // 5. display the budget
+      // 3. add the new item to the UI
+      UICtrl.addListItem(newItem, input.type);
+
+      //3.5 clear the fields
+      UICtrl.clearFields();
+      
+      //4. calculate and update budget
+      updateBudget();
+    }
 
   };
 
