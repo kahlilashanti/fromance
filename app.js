@@ -188,6 +188,12 @@ var UIController = (function() {
     return (type === 'exp' ? '-' : '+') + ' ' + int + '.' + dec;//ternary statement saying if it's not 'exp' it must be 'inc'
   };
 
+  var nodeListForEach = function(list, callback){
+    for (var i = 0; i < list.length; i++){
+      callback(list[i], i);
+    }
+  };
+
   return {
     getInput: function() {
       return {
@@ -260,12 +266,7 @@ var UIController = (function() {
     displayPercentages: function(percentages){
 
       var fields = document.querySelectorAll(DOMstrings.expensesPercLabel);//this returns a node list
-      //loop over all the nodes and change the text properties
-        var nodeListForEach = function(list, callback){
-          for (var i = 0; i < list.length; i++){
-            callback(list[i], i);
-          }
-        };
+      //loop over all the nodes and change the text properties (nodeListForEach)
 
         nodeListForEach(fields, function(current, index){
 
@@ -289,6 +290,20 @@ var UIController = (function() {
 
       year = now.getFullYear();
       document.querySelector(DOMstrings.dateLabel).textContent = months[month] + ', '  + ' ' + year;
+    },
+
+    changedType: function(){
+
+      var fields = document.querySelectorAll(
+        DOMstrings.inputType + ',' +
+        DOMstrings.inputDescription + ',' +
+        DOMstrings.inputValue);
+
+
+      nodeListForEach(fields, function(cur){
+        cur.classList.toggle('red-focus');
+      });
+      document.querySelector(DOMstrings.inputBtn).classList.toggle('red');
     },
 
     getDOMstrings: function() {
@@ -325,6 +340,9 @@ var controller = (function(budgetCtrl,UICtrl) {
 
       //add event handler for delete button
       document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
+
+      //border color of input fields change to red for expenses, green for income
+      document.querySelector(DOM.inputType).addEventListener('change', UICtrl.changedType);
 
   };
 
